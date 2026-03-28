@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raj Indra Group | Workforce & Financial Services</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Poppins', sans-serif; } </style>
+</head>
+<body class="bg-gray-50">
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwvgjO1F7wSsgWMJwh9H7nTaCLvI4Wok1Lm3NtK3O67xDDg4AphJSyRpbOjFdmEnj0yoQ/exec"; // <--- NAYA URL YAHAN DALEIN
+        const COMPANY_LOGO = "https://ibb.co/gb78NrMf"; // <--- APNA LOGO LINK YAHAN DALEIN
+        let currentUser = null;
+    </script>
+
+    <!-- 1. AUTH SCREEN -->
+    <div id="auth-screen" class="min-h-screen flex flex-col justify-center items-center bg-[#0f172a] p-4">
+        <div class="mb-10 text-center">
+            <img id="main-logo" src="" class="h-24 mx-auto mb-4 bg-white p-2 rounded-xl shadow-lg">
+            <h1 class="text-white text-2xl font-bold tracking-tight">RAJ INDRA GROUP</h1>
+            <p class="text-slate-400 text-sm uppercase tracking-widest mt-1">Workforce | Taxation | Financial</p>
+        </div>
+
+        <div id="login-box" class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800 text-center">Member Access</h2>
+            <input type="text" id="log-user" placeholder="Username (e.g. raj-12345)" class="w-full mb-4 p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="password" id="log-pass" placeholder="Password" class="w-full mb-6 p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+            <button onclick="login()" class="w-full bg-[#1e293b] text-white p-3 rounded-xl font-bold hover:bg-black transition">Login</button>
+            <p class="text-center mt-4 text-sm text-slate-500">New Associate? <a href="javascript:void(0)" onclick="toggleAuth()" class="text-red-600 font-bold">Register Profile</a></p>
+        </div>
+
+        <div id="register-box" class="hidden bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800 text-center">Onboarding Form</h2>
+            <div class="space-y-4">
+                <input type="text" id="reg-name" placeholder="Legal Full Name" class="w-full p-3 border rounded-xl">
+                <input type="email" id="reg-email" placeholder="Email Address" class="w-full p-3 border rounded-xl">
+                <input type="text" id="reg-phone" placeholder="Contact Number" class="w-full p-3 border rounded-xl">
+                <textarea id="reg-addr" placeholder="Permanent Address" class="w-full p-3 border rounded-xl"></textarea>
+                <input type="text" id="reg-photo" placeholder="Profile Photo URL" class="w-full p-3 border rounded-xl">
+                <button onclick="submitProfile()" class="w-full bg-red-600 text-white p-3 rounded-xl font-bold hover:bg-red-700">Submit Application</button>
+                <p class="text-center text-sm mt-2"><a href="javascript:void(0)" onclick="toggleAuth()" class="text-slate-500 underline">Back to Login</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. DASHBOARD -->
+    <div id="dashboard" class="hidden min-h-screen flex">
+        <!-- Sidebar -->
+        <div class="w-72 bg-[#0f172a] text-slate-300 flex flex-col p-6">
+            <div class="mb-10 bg-white p-3 rounded-xl shadow-md">
+                <img src="" id="sidebar-logo" class="h-12 mx-auto">
+            </div>
+            <nav class="flex-1 space-y-3">
+                <a href="#" class="block p-4 rounded-xl bg-blue-600/10 text-blue-400 font-bold border-l-4 border-blue-500">Dashboard</a>
+                <a href="#" class="block p-4 rounded-xl hover:bg-slate-800">Assignments</a>
+                <a href="#" class="block p-4 rounded-xl hover:bg-slate-800">Payments</a>
+                <a href="#" class="block p-4 rounded-xl hover:bg-slate-800">My Invoice</a>
+            </nav>
+            <button onclick="location.reload()" class="bg-red-600/10 text-red-500 p-4 rounded-xl font-bold">Logout</button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-10 overflow-y-auto">
+            <div id="loading" class="hidden fixed top-0 left-0 w-full h-1 bg-blue-500 animate-pulse"></div>
+
+            <div id="admin-view" class="hidden">
+                <header class="flex justify-between items-center mb-10">
+                    <h1 class="text-3xl font-bold text-slate-800">Executive Overview</h1>
+                </header>
+                
+                <div class="grid grid-cols-3 gap-8 mb-10">
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Revenue</p>
+                        <p class="text-4xl font-bold text-slate-800 mt-2">₹<span id="adm-rev">0</span></p>
+                    </div>
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Payouts</p>
+                        <p class="text-4xl font-bold text-slate-800 mt-2">₹<span id="adm-pay">0</span></p>
+                    </div>
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Profit</p>
+                        <p class="text-4xl font-bold text-red-600 mt-2">₹<span id="adm-prof">0</span></p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-10">
+                    <div class="bg-white p-8 rounded-3xl shadow-sm">
+                        <h2 class="font-bold text-xl mb-6">Pending Profile Approvals</h2>
+                        <div id="pending-users" class="space-y-4"></div>
+                    </div>
+                    <div class="bg-white p-8 rounded-3xl shadow-sm">
+                        <h2 class="font-bold text-xl mb-6">Case Logs</h2>
+                        <div id="active-leads" class="space-y-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="emp-view" class="hidden">
+                <div class="flex justify-between items-center mb-10 bg-white p-8 rounded-3xl shadow-sm">
+                    <div>
+                        <h1 class="text-3xl font-bold text-slate-800">Welcome, <span id="emp-name-tag"></span></h1>
+                        <p class="text-slate-500 mt-1">Associate Member | Raj Indra Group</p>
+                    </div>
+                    <div class="flex gap-4">
+                        <button onclick="generateID()" class="bg-[#1e293b] text-white px-6 py-3 rounded-xl font-bold shadow-lg">Official ID Card</button>
+                        <button onclick="generateInvoice()" class="bg-red-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg">Monthly Invoice</button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-8 rounded-3xl shadow-sm mb-10">
+                    <h2 class="font-bold text-lg mb-6">Submit New Assignment Lead</h2>
+                    <div class="flex gap-4">
+                        <input type="text" id="lead-client" placeholder="Client Name" class="flex-1 p-3 border rounded-xl">
+                        <input type="email" id="lead-email" placeholder="Client Email" class="flex-1 p-3 border rounded-xl">
+                        <button onclick="submitLead()" class="bg-[#0f172a] text-white px-8 rounded-xl font-bold">Submit Lead</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ID CARD TEMPLATE (Professional Navy/White/Red) -->
+    <div id="id-template" class="hidden w-[400px] bg-white border-2 border-slate-200 rounded-[30px] overflow-hidden shadow-2xl absolute top-[-9999px]">
+        <div class="bg-[#0f172a] p-8 text-center">
+            <img src="" class="id-logo h-16 mx-auto bg-white p-2 rounded-lg">
+            <h3 class="text-white mt-4 font-bold text-xl tracking-tighter">RAJ INDRA GROUP</h3>
+            <p class="text-red-500 text-[10px] font-bold tracking-widest uppercase">Official Identity Card</p>
+        </div>
+        <div class="p-8 text-center">
+            <div class="w-32 h-32 mx-auto rounded-full border-4 border-slate-100 overflow-hidden mb-4 shadow-md bg-slate-50">
+                <img id="id-photo" src="" class="w-full h-full object-cover">
+            </div>
+            <h2 id="id-name" class="text-2xl font-bold text-slate-800"></h2>
+            <p class="text-slate-500 font-bold text-xs uppercase mb-6 tracking-widest">Field Verification Officer</p>
+            
+            <div class="text-left bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-2">
+                <p class="text-[11px] text-slate-400 uppercase font-bold tracking-tighter">Member ID: <span id="id-num" class="text-slate-800 ml-2"></span></p>
+                <p class="text-[11px] text-slate-400 uppercase font-bold tracking-tighter">Emergency: <span id="id-phone" class="text-slate-800 ml-2"></span></p>
+                <p class="text-[11px] text-slate-400 uppercase font-bold tracking-tighter">Issue Date: <span class="text-slate-800 ml-2">April 2026</span></p>
+            </div>
+            <div class="mt-8 pt-4 border-t border-slate-100">
+                <p class="text-[9px] text-slate-400 italic">This is a system-generated ID card for business use only.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- INVOICE TEMPLATE (Hidden) -->
+    <div id="inv-template" class="hidden w-[800px] p-10 bg-white absolute top-[-9999px]">
+        <div class="flex justify-between items-start border-b-2 border-slate-900 pb-10">
+            <div>
+                <img src="" class="id-logo h-20 mb-4">
+                <h1 class="text-2xl font-black">RAJ INDRA GROUP</h1>
+                <p class="text-sm text-slate-500">Workforce | Taxation | Financial Services</p>
+            </div>
+            <div class="text-right">
+                <h2 class="text-4xl font-bold text-slate-300">INVOICE</h2>
+                <p class="mt-2 text-sm">Date: <span id="inv-date"></span></p>
+                <p class="text-sm">Invoice #: RI-INV-<span id="inv-num"></span></p>
+            </div>
+        </div>
+        <div class="py-10">
+            <p class="font-bold text-sm text-slate-400 uppercase">Billing To Associate:</p>
+            <h3 id="inv-name" class="text-xl font-bold mt-2"></h3>
+            <p id="inv-id" class="text-sm text-slate-600"></p>
+        </div>
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-900 text-white"><th class="p-4">Description</th><th class="p-4 text-right">Amount (INR)</th></tr>
+            </thead>
+            <tbody>
+                <tr class="border-b"><td class="p-4">Verification Services & Field Operations Payout</td><td class="p-4 text-right font-bold text-xl">₹<span id="inv-amt"></span></td></tr>
+            </tbody>
+        </table>
+        <div class="mt-20 border-t pt-10 flex justify-between items-center">
+            <div class="text-xs text-slate-400">Computer generated invoice. No signature required.</div>
+            <div class="text-right"><p class="font-bold">Authorized Signatory</p><p class="text-sm">Raj Indra Group</p></div>
+        </div>
+    </div>
+
+    <script>
+        // Set Logo Everywhere
+        document.getElementById('main-logo').src = COMPANY_LOGO;
+        document.getElementById('sidebar-logo').src = COMPANY_LOGO;
+        document.querySelectorAll('.id-logo').forEach(img => img.src = COMPANY_LOGO);
+
+        function toggleAuth() {
+            document.getElementById('login-box').classList.toggle('hidden');
+            document.getElementById('register-box').classList.toggle('hidden');
+        }
+
+        async function apiCall(data) {
+            document.getElementById('loading').classList.remove('hidden');
+            const res = await fetch(SCRIPT_URL, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(data) 
+            });
+            const result = await res.json();
+            document.getElementById('loading').classList.add('hidden');
+            return result;
+        }
+
+        async function login() {
+            const u = document.getElementById('log-user').value;
+            const p = document.getElementById('log-pass').value;
+            const res = await apiCall({action: 'login', username: u, password: p});
+            if(res.success) {
+                currentUser = res.user;
+                if(currentUser.status !== 'Approved' && currentUser.role !== 'admin') {
+                    alert("Verification Pending: Your profile is under review by Raj Indra Group Admin."); return;
+                }
+                showDashboard();
+            } else alert(res.message);
+        }
+
+        function showDashboard() {
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('emp-name-tag').innerText = currentUser.name;
+            if(currentUser.role === 'admin') {
+                document.getElementById('admin-view').classList.remove('hidden');
+                loadAdminData();
+            } else {
+                document.getElementById('emp-view').classList.remove('hidden');
+                loadEmpData();
+            }
+        }
+
+        async function submitProfile() {
+            const data = {
+                action: 'submitProfile',
+                name: document.getElementById('reg-name').value,
+                email: document.getElementById('reg-email').value,
+                phone: document.getElementById('reg-phone').value,
+                address: document.getElementById('reg-addr').value,
+                photo: document.getElementById('reg-photo').value
+            };
+            const res = await apiCall(data);
+            alert("Success: Profile submitted to Raj Indra Group. Check email for updates.");
+            toggleAuth();
+        }
+
+        async function loadAdminData() {
+            const res = await apiCall({action: 'getAdminData'});
+            document.getElementById('adm-rev').innerText = res.stats.rev.toLocaleString();
+            document.getElementById('adm-pay').innerText = res.stats.pay.toLocaleString();
+            document.getElementById('adm-prof').innerText = res.stats.prof.toLocaleString();
+
+            const pending = document.getElementById('pending-users');
+            pending.innerHTML = '';
+            res.employees.filter(e => e.status === 'Pending').forEach(e => {
+                pending.innerHTML += `<div class="p-5 bg-slate-50 border rounded-2xl flex justify-between items-center shadow-sm">
+                    <div><p class="font-bold text-slate-800">${e.name}</p><p class="text-xs text-slate-400">${e.phone}</p></div>
+                    <button onclick="approveProfile('${e.id}')" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-xs">Approve Associate</button>
+                </div>`;
+            });
+        }
+
+        async function approveProfile(id) {
+            await apiCall({action: 'approveProfile', empId: id});
+            alert("Member Approved! Credentials sent to associate."); loadAdminData();
+        }
+
+        function generateID() {
+            document.getElementById('id-name').innerText = currentUser.name;
+            document.getElementById('id-num').innerText = currentUser.id;
+            document.getElementById('id-phone').innerText = currentUser.phone;
+            document.getElementById('id-photo').src = currentUser.photo;
+            const el = document.getElementById('id-template');
+            el.classList.remove('hidden');
+            html2pdf().from(el).set({margin: 0, filename: `ID_CARD_${currentUser.id}.pdf`}).save().then(()=>el.classList.add('hidden'));
+        }
+
+        function generateInvoice() {
+            document.getElementById('inv-name').innerText = currentUser.name;
+            document.getElementById('inv-id').innerText = "Associate ID: " + currentUser.id;
+            document.getElementById('inv-date').innerText = new Date().toLocaleDateString();
+            document.getElementById('inv-num').innerText = Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('inv-amt').innerText = "15,400"; // Dynamic update can be added
+            const el = document.getElementById('inv-template');
+            el.classList.remove('hidden');
+            html2pdf().from(el).set({margin: 0, filename: `INVOICE_${currentUser.id}.pdf`}).save().then(()=>el.classList.add('hidden'));
+        }
+    </script>
+</body>
+</html>
